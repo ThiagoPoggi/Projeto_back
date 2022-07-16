@@ -1,13 +1,14 @@
 import express from 'express';
+import db from './config/dbConnect.js';
+import livros from './models/Livro.js';
+
+db.on('error', console.log.bind(console, 'error, no connection'));
+db.once('open', () => {
+    console.log('Database is connected');
+});
 
 const app = express();
 app.use(express.json());
-
-const livros = [
-    {id: 1, 'Titulo': 'Aprendendo javaScript'},
-    {id: 2, 'Titulo': 'Aprendendo Node'},
-    {id: 3, 'Titulo': 'Desvendando o protocolo HTTP'}
-]
 
 //Rota principal
 app.get('/', (req,res) => {
@@ -16,7 +17,10 @@ app.get('/', (req,res) => {
 
 //Exibição de livros
 app.get('/livros', (req, res) => {
-    res.status(200).send(livros);
+    //Utilizando o metodo . find() para retornar os dados
+    livros.find((err, livros) => {
+        res.status(200).json(livros);
+    })
 })
 
 //Consulta de livros por id
