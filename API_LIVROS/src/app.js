@@ -12,7 +12,7 @@ app.use(express.json());
 
 //Rota principal
 app.get('/', (req,res) => {
-    res.status(200).send("Pagina principal!");
+    res.status(200).send({message: "Pagina principal!"});
 })
 
 //Exibição de livros
@@ -25,29 +25,57 @@ app.get('/livros', (req, res) => {
 
 //Consulta de livros por id
 app.get('/livros/:id', (req, res) => {
-    let index = buscarlivro(req.params.id);
-    res.json(livros[index]);
+    //salvando o id em uma variável 
+    const id = req.params.id;
+    //Utilizando o findbyid para retornar livro por id
+    livros.findById(id, (err, livros) =>{
+        if(err){
+            res.status(400).json(err.message)
+        }else{
+            res.status(200).send(livros)
+        }
+    })
 })
 
 //Cadastro de um novo livro
 app.post('/livros', (req, res) => {
-    livros.push(req.body);
-    res.status(201).send('Livro cadastrado com sucesso!');
+    //Criando variavel que recebe o conteudo passando em body
+    let livro = new livros(req.body);
+    //Persistindo ele no banco
+    livro.save((err) => {
+        if(err){
+            res.status(500).send("Erro no cadastro do livro!")
+        }else{
+            res.status(201).send(livro.toJSON())
+        }
+    })
 })
 
 //Atualização de livro por id
 app.put('/livros/:id', (req, res) => {
-    let index = buscarlivro(req.params.id);
-    livros[index].Titulo = req.body.Titulo;
-    res.status(200).send('Atualização realizada com sucesso!');
+    //Salvando o id em uma variavel
+    const id = req.params.id;
+    //Utilizando o metodo que localiza o id e atualiza
+    livros.findByIdAndUpdate(id, {$set: req.body}, (err) =>{
+        if(err){
+            res.status(500).send({message: err.message})
+        }else{
+            res.status(200).send("Livro atualizado com sucesso!")
+        }
+    })
 });
 
 //Excluindo um livro por id
 app.delete('/livros/:id', (req, res) => {
-    let {id} =  req.params;
-    let index = buscarlivro(id);
-    livros.splice(index, 1);
-    res.send(`Livro ${id} foi excluido com sucesso!`)
+    const id = req.params.id;
+    //Utilizando o metodo para localizar por id e excluir
+    livros.findByIdAndDelete(id, (err) =>{
+        if(err){
+            res.status(500).send({message: err.message})
+        }else{
+            res.status(200).send("Livro Removido com sucesso!!")
+        }
+    })
 });
 
 
